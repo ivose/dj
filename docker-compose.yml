@@ -14,6 +14,13 @@ services:
       # apt-get update && apt-get install -y mariadb-client
     networks:
       - app-network
+    healthcheck:
+      # ks. https://mariadb.com/kb/en/using-healthcheck-sh/
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   dj1_pma:
     image: phpmyadmin/phpmyadmin
@@ -69,7 +76,9 @@ services:
       #- MYSQL_USER: ab_usr
       #- MYSQL_PASSWORD: mypass
     depends_on:
-      - dj1_mariadb
+      # ks. https://docs.docker.com/compose/startup-order/
+      dj1_mariadb:
+        condition: service_healthy
     networks:
       - app-network
 
